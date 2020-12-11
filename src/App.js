@@ -8,12 +8,22 @@ function App() {
   const [posY, setPosY] = useState(0);
   const [angle, setAngle] = useState(0);
 
-  const [baseSize] = useState(70);
-  const [size, setSize] = useState(70);
+  const [baseSize] = useState(() => {
+    let proposedWidth = window.innerWidth / 20;
+    if (proposedWidth < 50) proposedWidth = 50;
+    return proposedWidth;
+  });
+  const [size] = useState(() => {
+    let proposedWidth = window.innerWidth / 20;
+    if (proposedWidth < 50) proposedWidth = 50;
+    return proposedWidth;
+  });
 
-  const [goingUp, setGoingUp] = useState(true);
+
+  const [flying, setFlying] = useState(true);
 
   const animating = useRef(false);
+
   const target = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -32,45 +42,40 @@ function App() {
       animating.current = true;
       target.current = { x: x - size / 2, y: y - size / 2 }
 
-      setSize(2 * baseSize);
-      setPosX(posX + (x - posX) / 2 - size);
-      setPosY(posY + (y - posY) / 2 - size);
+
+
+      setFlying(true);
+
       setAngle(360 - newAngle);
-      setGoingUp(false);
+
+      setPosX(x - size / 2);
+      setPosY(y - size / 2);
+
     }
 
     window.addEventListener('click', onClick);
 
     return () => window.removeEventListener('click', onClick);
-  }, [posX, posY, baseSize, size]);
-
-  function animate() {
-    if (animating.current) {
-      animating.current = false;
-      setSize(baseSize);
-      setPosX(target.current.x);
-      setPosY(target.current.y);
-      setGoingUp(true);
-    }
-  }
+  }, [posX, posY, baseSize, size, flying]);
 
   return (
     <div className="App">
-      <div width={size} height={size}>
+      <div className="plane-container" style={{
+        position: 'absolute',
+        left: posX,
+        top: posY,
+        transform: `rotate(${angle}deg)`,
+        transformOrigin: 'center',
+        width: size,
+        height: size
+      }}>
         <img
-          className={goingUp ? "airplane-going-up" : "airplane-going-down"}
+          className={"plane" + (flying ? " flying" : "")}
           src={airplane}
           alt="airplane"
           width={size}
           height={size}
-          style={{
-            position: 'absolute',
-            left: posX,
-            top: posY,
-            transform: `rotate(${angle}deg)`,
-            transformOrigin: 'center',
-          }}
-          onTransitionEnd={animate}
+          onAnimationEnd={(e) => { setFlying(false) }}
         />
       </div>
 
